@@ -70,7 +70,26 @@
 <body id="<?php echo $post->post_name; ?>" class="single-purpose <?php echo get_post_type(); ?>">
 
 <header>
-   
+  <div class="logo">
+    <a href="<?php echo get_bloginfo('wpurl'); ?>" title="Single Purpose Homepage">
+      <img src="<?php echo get_bloginfo('template_directory'); ?>/assets/images/header-seal.svg" />
+    </a>
+  </div>
+  <div class="header-content">
+    <div class="nav-container">
+      <div class="title">
+        <a href="<?php echo get_bloginfo('wpurl'); ?>">
+            Single Purpose Sober Club
+        </a>
+      </div>
+      <div class="subtitle">
+          Poughkeepsie, New York
+      </div>
+      <div class="nav-wrap">
+        
+      </div>
+    </div>
+  </div>
 </header>
 
 <!-- END OF HEADER.PHP -->

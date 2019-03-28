@@ -2,3 +2,69 @@ body {
     background: white url(../images/stripe-bg.png) repeat;
     font: 400 18px 'Work Sans', sans-serif;
 }
+
+a {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+header {
+    display: block;
+    margin: 50px auto 0 auto;
+    width: calc( 100% - 40px );
+}
+
+img {
+    height: auto;
+    max-width: 100%;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto;
+    width: 150px;
+}
+
+.header-content {
+    background-color: white;
+    display: block;
+    margin-top: -90px;
+    padding-top: 86px;
+    width: 100%;
+}
+
+.nav-container {
+    border: 5px solid var(--blue);
+    border-left: 0;
+    border-right: 0;
+    display: table;
+    width: 100%;
+}
+
+header .title a {
+    display: block;
+    color: var(--blue);
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 1rem 0;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+header .subtitle {
+    color: #999;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    text-align: center;
+    margin: 0 auto 1rem auto;
+}
+
+.nav-wrap {
+    background-color: #EEE;
+    display: table;
+    padding: 0.5rem 0;
+    width: 100%;
+}
+
