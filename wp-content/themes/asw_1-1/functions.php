@@ -145,20 +145,30 @@ function asw_save_meta($post_id) {
 	
 }
 
-
+/*
 function asw_widgets_init() {
 
 	register_sidebar( array(
-		'name'          => 'Home Instagram Feed',
-		'id'            => 'home_instagram',
-		'before_widget' => '<div>',
+		'name'          => 'Homepage Content',
+		'id'            => 'homepage_content',
+		'before_widget' => '<div class="homepage_content">',
 		'after_widget'  => '</div>',
-		'before_title'  => '<h2>',
-		'after_title'   => '</h2>',
+		'before_title'  => '<div style="display: none;">',
+		'after_title'   => '</div>',
+	) );
+
+	register_sidebar( array(
+		'name'          => 'Homepage Image',
+		'id'            => 'homepage_image',
+		'before_widget' => '<div class="homepage_image">',
+		'after_widget'  => '</div>',
+		'before_title'  => '<div style="display: none;">',
+		'after_title'   => '</div>',
 	) );
 
 }
 add_action( 'widgets_init', 'asw_widgets_init' );
+*/
 
 function mytheme_setup() {
     // Add support for Block Styles
@@ -214,10 +224,14 @@ function editglobalcustomfields() {
 	<p><strong>Facebook URL:</strong><br />
 	<input type="text" name="facebook" size="45" value="<?php echo get_option('facebook'); ?>" /></p>
 
+	<p><strong>Homepage Blurb:</strong><br />
+	<input type="text" name="homepage-blurb" size="45" value="<?php echo get_option('homepage-blurb'); ?>" /></p>
+
 	<p><input type="submit" name="Submit" value="Update Options" /></p>
 
 	<input type="hidden" name="action" value="update" />
-	<input type="hidden" name="page_options" value="email,facebook" />
+	<input type="hidden" name="page_options" value="email,facebook,homepage-blurb" />
+	
 
 	</form>
 	</div>

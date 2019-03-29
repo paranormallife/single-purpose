@@ -1,0 +1,40 @@
+@media screen and ( min-width: 768px ) {
+
+    .logo {
+        width: 200px;
+    }
+
+    .header-content {
+        margin-top: -110px;
+        padding-top: 106px;
+    }
+
+    .nav-icons {
+        display: none;
+    }
+
+    nav ul {
+        max-height: 100px;
+        overflow: visible;
+        text-align: center;
+    }
+
+    nav ul li {
+        display: inline-block;
+    }
+    
+    nav ul a {
+        display: inline-block;
+        font-size: 18px;
+        padding: 0 0.5rem;
+    }
+
+    nav ul li:last-of-type a {
+        color: var(--red);
+    }
+
+    nav ul a:hover {
+        color: var(--blue);
+    }
+
+}
