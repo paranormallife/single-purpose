@@ -113,3 +113,136 @@ nav ul a {
     text-transform: uppercase;
 }
 
+main {
+    background-color: white;
+    display: table;
+    margin: 0 auto;
+    max-width: 900px;
+    width: calc( 100% - 40px );
+}
+
+.homepage-content {
+    display: block;
+    line-height: 24px;
+    margin: 0 auto;
+    max-width: 600px;
+    padding: 50px;
+    text-align: center;
+}
+
+.page-width {
+    margin: 0 auto;
+    max-width: 900px;
+    width: calc( 100% - 40px );
+}
+
+.homepage-blurb {
+    border: 5px solid #EEE;
+    border-left: 0;
+    border-right: 0;
+    display: block;
+    font-family: var(--serif);
+    font-size: 24px;
+    margin: 0 auto 50px auto;
+    max-width: 750px;
+    padding: 25px 0;
+    text-align: center;
+}
+
+.content {
+    display: table;
+    margin: 0 auto;
+    max-width: 750px;
+    width: calc( 100% - 50px );
+}
+
+.news-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.latest-post {
+    line-height: 24px;
+}
+
+.latest-post .timestamp {
+    display: block;
+    font-size: 16px;
+}
+
+.latest-post h2 {
+    font-size: 18px;
+    margin: 0.5rem 0;
+}
+
+.news-button {
+    margin: 30px auto;
+}
+
+.news-button a {
+    background-color: var(--red);
+    color: white;
+    display: table;
+    font-size: 14px;
+    margin: 0 auto;
+    padding: 1em;
+    text-transform: uppercase;
+}
+
+.footer-image {
+    background-position: center center;
+    background-size: cover;
+}
+
+.footer-image img {
+    opacity: 0;
+}
+
+footer {
+    background-color: var(--blue);
+    color: white;
+    display: table;
+    text-align: center;
+}
+
+.footer-contact {
+    color: white;
+    display: block;
+    font-family: var(--serif);
+    font-size: 16px;
+}
+
+.footer-contact a {
+    color: white;
+}
+
+.footer-contact a i {
+    display: inline-block;
+    font-size: 24px;
+    margin: 0 0.25rem;
+}
+
+.footer-contact div {
+    margin: 1em 0;
+}
+
+footer .address span {
+    display: block;
+}
+
+footer .copyright {
+    background-color: black;
+    font-size: 14px;
+    padding: 1rem;
+}
+
+footer .copyright a {
+    color: white;
+}
+
+footer .copyright .credit {
+    padding: 1rem 0;
+}

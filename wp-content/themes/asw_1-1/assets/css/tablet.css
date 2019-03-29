@@ -37,4 +37,39 @@
         color: var(--blue);
     }
 
+    .latest-post {
+        align-items: center;
+        display: flex;
+        justify-content: stretch;
+    }
+
+    .latest-post .timestamp {
+        font-size: 18px;
+        font-weight: 600;
+        flex-basis: 300px;
+        margin-right: 1rem;
+    }
+
+    .content {
+        padding: 0;
+    }
+
+    .news-button a:hover {
+        background-color: var(--blue);
+    }
+
+    footer .address span {
+        display: inline;
+    }
+
+    footer .copyright div {
+        display: inline-block;
+    }
+
+    footer .copyright .credit {
+        border-left: 1px solid #666;
+        margin-left: 1rem;
+        padding: 0 0 0 1rem;
+    }
+
 }

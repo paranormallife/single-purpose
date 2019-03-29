@@ -227,10 +227,13 @@ function editglobalcustomfields() {
 	<p><strong>Homepage Blurb:</strong><br />
 	<input type="text" name="homepage-blurb" size="45" value="<?php echo get_option('homepage-blurb'); ?>" /></p>
 
+	<p><strong>Phone Number:</strong><br />
+	<input type="text" name="phone" size="45" value="<?php echo get_option('phone'); ?>" /></p>
+
 	<p><input type="submit" name="Submit" value="Update Options" /></p>
 
 	<input type="hidden" name="action" value="update" />
-	<input type="hidden" name="page_options" value="email,facebook,homepage-blurb" />
+	<input type="hidden" name="page_options" value="email,facebook,homepage-blurb,phone" />
 	
 
 	</form>
