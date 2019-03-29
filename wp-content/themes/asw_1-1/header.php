@@ -86,7 +86,21 @@
           Poughkeepsie, New York
       </div>
       <div class="nav-wrap">
-        
+        <div class="nav-icons">
+          <a href="mailto:<?php get_option('email'); ?>">
+            <i class="fas fa-envelope-square"></i>
+          </a>
+          <div class="menu-icon" id="navIcon" onclick="navToggle()">
+            <i class="fas fa-bars open icon"></i>
+            <i class="fas fa-times close icon"></i>
+          </div>
+          <a href="<?php get_option('facebook'); ?>" target="_blank">
+            <i class="fab fa-facebook-square"></i>
+          </a>
+        </div>
+        <nav>
+          <?php get_template_part('snippets/nav_menu'); ?>
+        </nav>
       </div>
     </div>
   </div>

@@ -3,10 +3,10 @@
 
 <div class="footer-wrapper">
 
-    <footer>
-        
+    <footer></footer>
 
 </div>
+
 
 <?php /* Include this so the admin bar is visible. */ wp_footer(); ?>
 

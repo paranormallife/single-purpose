@@ -192,3 +192,34 @@ function mytheme_setup() {
 add_action( 'after_setup_theme', 'mytheme_setup' );
 
 ?>
+
+<?php
+//Custom Theme Settings
+add_action('admin_menu', 'add_gcf_interface');
+
+function add_gcf_interface() {
+	add_options_page('Global Custom Fields', 'Global Custom Fields', '8', 'functions', 'editglobalcustomfields');
+}
+
+function editglobalcustomfields() {
+	?>
+	<div class='wrap'>
+	<h2>Global Custom Fields</h2>
+	<form method="post" action="options.php">
+	<?php wp_nonce_field('update-options') ?>
+
+	<p><strong>Email Address:</strong><br />
+	<input type="text" name="email" size="45" value="<?php echo get_option('email'); ?>" /></p>
+
+	<p><strong>Facebook URL:</strong><br />
+	<input type="text" name="facebook" size="45" value="<?php echo get_option('facebook'); ?>" /></p>
+
+	<p><input type="submit" name="Submit" value="Update Options" /></p>
+
+	<input type="hidden" name="action" value="update" />
+	<input type="hidden" name="page_options" value="email,facebook" />
+
+	</form>
+	</div>
+	<?php
+}
