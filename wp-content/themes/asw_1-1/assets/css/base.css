@@ -113,6 +113,10 @@ nav ul a {
     text-transform: uppercase;
 }
 
+nav ul .current-menu-item a {
+    opacity: 0.5;
+}
+
 main {
     background-color: white;
     display: table;
@@ -245,4 +249,27 @@ footer .copyright a {
 
 footer .copyright .credit {
     padding: 1rem 0;
+}
+
+.post-content {
+    display: table;
+    margin: 50px auto;
+    max-width: 650px;
+    width: calc( 100% - 100px );
+}
+
+.post-content h1 {
+    display: block;
+    font-size: 18px;
+    margin: 0 auto 1rem auto;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.post-content p {
+    font-size: 16px;
+    hyphens: auto;
+    line-height: 18px;
+    margin-bottom: 1rem;
+    text-align: justify;
 }
