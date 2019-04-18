@@ -266,6 +266,11 @@ footer .copyright .credit {
     text-transform: uppercase;
 }
 
+.post-content h2 {
+    font-size: 18px;
+    margin: 0.5em 0;
+}
+
 .post-content p {
     font-size: 16px;
     hyphens: auto;
