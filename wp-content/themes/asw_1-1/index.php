@@ -2,7 +2,7 @@
 
 <!-- Index Template -->
 
-<main>
+<main class="index">
     <div class="post-content">
         <?php get_template_part( 'loop' ); ?>
     </div>

@@ -28,7 +28,7 @@
                 <span class="timestamp"><?php the_time('F j, Y'); ?></span>
                 <span class="excerpt">
                     <h2><?php the_title(); ?></h2>
-                    <div><?php the_excerpt(); ?></div>
+                    <div><?php the_content(); ?></div>
                 </span>
             </div>
         <?php endwhile; wp_reset_postdata(); ?>
