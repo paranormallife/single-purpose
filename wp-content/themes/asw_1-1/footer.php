@@ -17,10 +17,10 @@
     <footer class="page-width">
         <div class="footer-contact">
             <div>
-                <a href="mailto:<?php get_option('email'); ?>">
+                <a href="mailto:<?php echo get_option('email'); ?>">
                     <i class="fas fa-envelope-square"></i>
                 </a>
-                <a href="<?php get_option('facebook'); ?>" target="_blank">
+                <a href="<?php echo get_option('facebook'); ?>" target="_blank">
                     <i class="fab fa-facebook-square"></i>
                 </a>
             </div>
