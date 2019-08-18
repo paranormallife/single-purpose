@@ -201,9 +201,6 @@ function mytheme_setup() {
 }
 add_action( 'after_setup_theme', 'mytheme_setup' );
 
-?>
-
-<?php
 //Custom Theme Settings
 add_action('admin_menu', 'add_gcf_interface');
 
