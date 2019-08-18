@@ -3,7 +3,7 @@
  * Helper functions.
  *
  * @package   Block_Lab
- * @copyright Copyright(c) 2018, Block Lab
+ * @copyright Copyright(c) 2019, Block Lab
  * @license http://opensource.org/licenses/GPL-2.0 GNU General Public License, version 2 (GPL-2.0)
  */
 
@@ -27,7 +27,8 @@ function block_field( $name, $echo = true ) {
 
 	if (
 		! isset( $block_lab_attributes ) ||
-		! is_array( $block_lab_attributes )
+		! is_array( $block_lab_attributes ) ||
+		( ! isset( $block_lab_config->fields[ $name ] ) && 'className' !== $name )
 	) {
 		return null;
 	}
@@ -37,11 +38,27 @@ function block_field( $name, $echo = true ) {
 		$value = $block_lab_attributes[ $name ];
 	}
 
+	// Cast default Editor attributes appropriately.
+	if ( 'className' === $name ) {
+		$value = strval( $value );
+	}
+
 	// Cast block value as correct type.
-	if ( isset( $block_lab_config['fields'][ $name ]['type'] ) ) {
-		switch ( $block_lab_config['fields'][ $name ]['type'] ) {
+	if ( isset( $block_lab_config->fields[ $name ]->type ) ) {
+		switch ( $block_lab_config->fields[ $name ]->type ) {
 			case 'string':
 				$value = strval( $value );
+				break;
+			case 'textarea':
+				$value = strval( $value );
+				if ( isset( $block_lab_config->fields[ $name ]->settings['new_lines'] ) ) {
+					if ( 'autop' === $block_lab_config->fields[ $name ]->settings['new_lines'] ) {
+						$value = wpautop( $value );
+					}
+					if ( 'autobr' === $block_lab_config->fields[ $name ]->settings['new_lines'] ) {
+						$value = nl2br( $value );
+					}
+				}
 				break;
 			case 'boolean':
 				if ( 1 === $value ) {
@@ -61,14 +78,14 @@ function block_field( $name, $echo = true ) {
 		}
 	}
 
-	$control = isset( $block_lab_config['fields'][ $name ]['control'] ) ? $block_lab_config['fields'][ $name ]['control'] : null;
+	$control = isset( $block_lab_config->fields[ $name ]->control ) ? $block_lab_config->fields[ $name ]->control : null;
 
 	/**
 	 * Filters the value to be made available or echoed on the front-end template.
 	 *
-	 * @param mixed  $value The value.
-	 * @param string $control The type of the control, like 'user'.
-	 * @param bool   $echo Whether or not this value will be echoed.
+	 * @param mixed       $value The value.
+	 * @param string|null $control The type of the control, like 'user', or null if this is the 'className', which has no control.
+	 * @param bool        $echo Whether or not this value will be echoed.
 	 */
 	$value = apply_filters( 'block_lab_field_value', $value, $control, $echo );
 
@@ -116,7 +133,7 @@ function block_value( $name ) {
  */
 function block_config() {
 	global $block_lab_config;
-	return $block_lab_config;
+	return (array) $block_lab_config;
 }
 
 /**
@@ -128,123 +145,8 @@ function block_config() {
  */
 function block_field_config( $name ) {
 	global $block_lab_config;
-	if ( ! isset( $block_lab_config['fields'][ $name ] ) ) {
+	if ( ! isset( $block_lab_config->fields[ $name ] ) ) {
 		return null;
 	}
-	return $block_lab_config['fields'][ $name ];
-}
-
-/**
- * Locates templates.
- *
- * Works similar to `locate_template`, but allows specifying a path outside of themes
- * and allows to be called when STYLESHEET_PATH has not been set yet. Handy for async.
- *
- * @param string|array $template_names Templates to locate.
- * @param string       $path           (Optional) Path to locate the templates first.
- * @param bool         $single         `true` - Returns only the first found item. Like standard `locate_template`
- *                                     `false` - Returns all found templates.
- *
- * @return string|array
- */
-function block_lab_locate_template( $template_names, $path = '', $single = true ) {
-	$path            = apply_filters( 'block_lab_template_path', $path );
-	$stylesheet_path = get_template_directory();
-	$template_path   = get_stylesheet_directory();
-
-	$located = [];
-
-	foreach ( (array) $template_names as $template_name ) {
-
-		if ( ! $template_name ) {
-			continue;
-		}
-
-		if ( ! empty( $path ) && file_exists( $path . '/' . $template_name ) ) {
-			$located[] = $path . '/' . $template_name;
-			if ( $single ) {
-				break;
-			}
-		}
-
-		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
-			$located[] = $stylesheet_path . '/' . $template_name;
-			if ( $single ) {
-				break;
-			}
-		}
-
-		if ( file_exists( $template_path . '/' . $template_name ) ) {
-			$located[] = $template_path . '/' . $template_name;
-			if ( $single ) {
-				break;
-			}
-		}
-
-		if ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
-			$located[] = ABSPATH . WPINC . '/theme-compat/' . $template_name;
-			if ( $single ) {
-				break;
-			}
-		}
-	}
-
-	// Remove duplicates and re-index array.
-	$located = array_values( array_unique( $located ) );
-
-	if ( $single ) {
-		return array_shift( $located );
-	}
-
-	return $located;
-}
-
-/**
- * Provides a list of all available block icons.
- *
- * To include additional icons in this list, use the block_lab_icons filter, and add a new svg string to the array,
- * using a unique key. For example:
- *
- * $icons['foo'] = '<svg>…</svg>';
- *
- * @return array
- */
-function block_lab_get_icons() {
-	// This is on the local filesystem, so file_get_contents() is ok to use here.
-	$json_file = block_lab()->get_assets_path( 'icons.json' );
-	$json      = file_get_contents( $json_file ); // @codingStandardsIgnoreLine
-	$icons     = json_decode( $json, true );
-
-	return apply_filters( 'block_lab_icons', $icons );
-}
-
-/**
- * Provides a list of allowed tags to be used by an <svg>.
- *
- * @return array
- */
-function block_lab_allowed_svg_tags() {
-	$allowed_tags = array(
-		'svg'    => array(
-			'xmlns'   => true,
-			'width'   => true,
-			'height'  => true,
-			'viewbox' => true,
-		),
-		'g'      => array( 'fill' => true ),
-		'title'  => array( 'title' => true ),
-		'path'   => array(
-			'd'       => true,
-			'fill'    => true,
-			'opacity' => true,
-		),
-		'circle' => array(
-			'cx'   => true,
-			'cy'   => true,
-			'r'    => true,
-			'fill' => true,
-		),
-	);
-
-	return apply_filters( 'block_lab_allowed_svg_tags', $allowed_tags );
+	return (array) $block_lab_config->fields[ $name ];
 }

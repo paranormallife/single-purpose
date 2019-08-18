@@ -3,7 +3,7 @@
  * Block Post Type.
  *
  * @package   Block_Lab
- * @copyright Copyright(c) 2018, Block Lab
+ * @copyright Copyright(c) 2019, Block Lab
  * @license http://opensource.org/licenses/GPL-2.0 GNU General Public License, version 2 (GPL-2.0)
  */
 
@@ -32,6 +32,18 @@ class Block_Post extends Component_Abstract {
 	 * @var Controls\Control_Abstract[]
 	 */
 	public $controls = array();
+
+	/**
+	 * The pro controls.
+	 *
+	 * @var array
+	 */
+	public $pro_controls = array(
+		'post',
+		'rich_text',
+		'taxonomy',
+		'user',
+	);
 
 	/**
 	 * Register any hooks that this component needs.
@@ -70,32 +82,62 @@ class Block_Post extends Component_Abstract {
 	 * @return void
 	 */
 	public function register_controls() {
-		$controls = array(
-			'text'        => new Controls\Text(),
-			'textarea'    => new Controls\Textarea(),
-			'url'         => new Controls\URL(),
-			'email'       => new Controls\Email(),
-			'number'      => new Controls\Number(),
-			'color'       => new Controls\Color(),
-			'image'       => new Controls\Image(),
-			'select'      => new Controls\Select(),
-			'multiselect' => new Controls\Multiselect(),
-			'toggle'      => new Controls\Toggle(),
-			'range'       => new Controls\Range(),
-			'checkbox'    => new Controls\Checkbox(),
-			'radio'       => new Controls\Radio(),
+		$control_names = array(
+			'text',
+			'textarea',
+			'url',
+			'email',
+			'number',
+			'color',
+			'image',
+			'select',
+			'multiselect',
+			'toggle',
+			'range',
+			'checkbox',
+			'radio',
 		);
 
 		if ( block_lab()->is_pro() ) {
-			$controls = array_merge(
-				$controls,
-				array(
-					'user' => new Controls\User(),
-				)
-			);
+			$control_names = array_merge( $control_names, $this->pro_controls );
 		}
 
+		foreach ( $control_names as $control_name ) {
+			$control = $this->get_control( $control_name );
+			if ( $control ) {
+				$controls[ $control->name ] = $control;
+			}
+		}
+
+		/**
+		 * Filters the available controls.
+		 *
+		 * @param array $controls {
+		 *     An associative array of the available controls.
+		 *
+		 *     @type string $control_name The name of the control, like 'user'.
+		 *     @type object $control The control opbject, extending Controls\Control_Abstract.
+		 * }
+		 */
 		$this->controls = apply_filters( 'block_lab_controls', $controls );
+	}
+
+	/**
+	 * Gets an instantiated control.
+	 *
+	 * @param string $control_name The name of the control.
+	 * @return object|null The instantiated control, or null.
+	 */
+	public function get_control( $control_name ) {
+		if ( isset( $this->controls[ $control_name ] ) ) {
+			return $this->controls[ $control_name ];
+		}
+
+		$class_name    = ucwords( $control_name, '_' );
+		$control_class = 'Block_Lab\\Blocks\\Controls\\' . $class_name;
+		if ( class_exists( $control_class ) ) {
+			return new $control_class();
+		}
 	}
 
 	/**
@@ -114,6 +156,11 @@ class Block_Post extends Component_Abstract {
 	public function get_field_value( $value, $control, $echo ) {
 		if ( isset( $this->controls[ $control ] ) && method_exists( $this->controls[ $control ], 'validate' ) ) {
 			return call_user_func( array( $this->controls[ $control ], 'validate' ), $value, $echo );
+		} elseif ( in_array( $control, $this->pro_controls, true ) && ! block_lab()->is_pro() ) {
+			$pro_control = $this->get_control( $control );
+			if ( method_exists( $pro_control, 'validate' ) ) {
+				return call_user_func( array( $pro_control, 'validate' ), $value, $echo );
+			}
 		}
 
 		return $value;
@@ -278,7 +325,8 @@ class Block_Post extends Component_Abstract {
 		);
 
 		if ( isset( $post->post_name ) && ! empty( $post->post_name ) ) {
-			$template = block_lab_locate_template( 'blocks/block-' . $post->post_name . '.php', '', true );
+			$locations = block_lab()->get_template_locations( $post->post_name );
+			$template  = block_lab()->locate_template( $locations, '', true );
 
 			if ( ! $template ) {
 				add_meta_box(
@@ -336,7 +384,7 @@ class Block_Post extends Component_Abstract {
 	public function render_properties_meta_box() {
 		$post  = get_post();
 		$block = new Block( $post->ID );
-		$icons = block_lab_get_icons();
+		$icons = block_lab()->get_icons();
 
 		if ( ! $block->icon ) {
 			$block->icon = 'block_lab';
@@ -352,7 +400,7 @@ class Block_Post extends Component_Abstract {
 				id="block-properties-slug"
 				value="<?php echo esc_attr( $post->post_name ); ?>" />
 		</p>
-		<p class="description" id="block-properties-slug-description">
+		<p class="description">
 			<?php
 			esc_html_e(
 				'Used to determine the name of the template file.',
@@ -372,7 +420,7 @@ class Block_Post extends Component_Abstract {
 			<span id="block-properties-icon-current">
 				<?php
 				if ( array_key_exists( $block->icon, $icons ) ) {
-					echo wp_kses( $icons[ $block->icon ], block_lab_allowed_svg_tags() );
+					echo wp_kses( $icons[ $block->icon ], block_lab()->allowed_svg_tags() );
 				}
 				?>
 			</span>
@@ -390,7 +438,7 @@ class Block_Post extends Component_Abstract {
 						'<span class="icon %1$s" data-value="%2$s">%3$s</span>',
 						esc_attr( $selected ),
 						esc_attr( $icon ),
-						wp_kses( $svg, block_lab_allowed_svg_tags() )
+						wp_kses( $svg, block_lab()->allowed_svg_tags() )
 					);
 				}
 				?>
@@ -400,9 +448,30 @@ class Block_Post extends Component_Abstract {
 			<label for="block-properties-category">
 				<?php esc_html_e( 'Category:', 'block-lab' ); ?>
 			</label>
-			<select name="block-properties-category" id="block-properties-category">
+			<select name="block-properties-category" id="block-properties-category" class="block-properties-category">
+				<?php
+				$categories = get_block_categories( $post );
+				foreach ( $categories as $category ) {
+					?>
+					<option value="<?php echo esc_attr( $category['slug'] ); ?>" <?php selected( $category['slug'], $block->category['slug'] ); ?>>
+						<?php echo esc_html( $category['title'] ); ?>
+					</option>
+					<?php
+				}
+				?>
+				<option disabled>────────</option>
+				<option value="__custom"><?php esc_html_e( 'Custom Category', 'block-lab' ); ?></option>
 			</select>
-			<input type="hidden" id="block-properties-category-saved" value="<?php echo esc_attr( $block->category ); ?>" />
+			<span class="block-properties-category-custom">
+				<label for="block-properties-category-name">
+					<?php esc_html_e( 'New Category Name:', 'block-lab' ); ?>
+				</label>
+				<input
+					name="block-properties-category-name"
+					type="text"
+					id="block-properties-category-name"
+					value="" />
+			</span>
 		</p>
 		<p>
 			<label for="block-properties-keywords">
@@ -414,7 +483,7 @@ class Block_Post extends Component_Abstract {
 				id="block-properties-keywords"
 				value="<?php echo esc_attr( implode( ', ', $block->keywords ) ); ?>" />
 		</p>
-		<p class="description" id="block-properties-keywords-description">
+		<p class="description">
 			<?php
 			esc_html_e(
 				'A comma separated list of keywords, used when searching. Maximum of 3.',
@@ -448,9 +517,6 @@ class Block_Post extends Component_Abstract {
 						</th>
 						<th class="block-fields-control">
 							<?php esc_html_e( 'Field Type', 'block-lab' ); ?>
-						</th>
-						<th class="block-fields-location">
-							<?php esc_html_e( 'Field Location', 'block-lab' ); ?>
 						</th>
 					</tr>
 				</thead>
@@ -518,6 +584,8 @@ class Block_Post extends Component_Abstract {
 		if ( ! $uid ) {
 			$uid = '{{ data.uid }}';
 		}
+		$is_field_disabled = ( ! isset( $this->controls[ $field->control ] ) && in_array( $field->control, $this->pro_controls, true ) );
+
 		?>
 		<div class="block-fields-row" data-uid="<?php echo esc_attr( $uid ); ?>">
 			<div class="block-fields-sort">
@@ -541,16 +609,31 @@ class Block_Post extends Component_Abstract {
 				<code id="block-fields-name-code_<?php echo esc_attr( $uid ); ?>"><?php echo esc_html( $field->name ); ?></code>
 			</div>
 			<div class="block-fields-control" id="block-fields-control_<?php echo esc_attr( $uid ); ?>">
-				<?php echo esc_html( $this->controls[ $field->control ]->label ); ?>
-			</div>
-			<div class="block-fields-location" id="block-fields-location_<?php echo esc_attr( $uid ); ?>">
 				<?php
-				if ( 'editor' === $field->location ) {
-					esc_html_e( 'Editor', 'block-lab' );
-				} elseif ( 'inspector' === $field->location ) {
-					esc_html_e( 'Inspector', 'block-lab' );
-				}
-				?>
+				if ( ! $is_field_disabled && isset( $this->controls[ $field->control ] ) ) :
+					echo esc_html( $this->controls[ $field->control ]->label );
+				else :
+					?>
+					<span class="dashicons dashicons-warning"></span>
+					<span class="pro-required">
+						<?php
+						/* translators: %1$s is the field type, %2$s is the URL for the Pro license */
+						printf(
+							wp_kses_post( 'This <code>%1$s</code> field requires an active <a href="%2$s">pro license</a>.', 'block-lab' ),
+							esc_html( $field->control ),
+							esc_url(
+								add_query_arg(
+									array(
+										'post_type' => 'block_lab',
+										'page'      => 'block-lab-pro',
+									),
+									admin_url( 'edit.php' )
+								)
+							)
+						);
+						?>
+					</span>
+				<?php endif; ?>
 			</div>
 			<div class="block-fields-edit">
 				<table class="widefat">
@@ -560,7 +643,7 @@ class Block_Post extends Component_Abstract {
 							<label for="block-fields-edit-label-input_<?php echo esc_attr( $uid ); ?>">
 								<?php esc_html_e( 'Field Label', 'block-lab' ); ?>
 							</label>
-							<p class="description" id="block-fields-edit-label-description">
+							<p class="description">
 								<?php
 								esc_html_e(
 									'A label describing your block\'s custom field.',
@@ -576,7 +659,16 @@ class Block_Post extends Component_Abstract {
 								id="block-fields-edit-label-input_<?php echo esc_attr( $uid ); ?>"
 								class="regular-text"
 								value="<?php echo esc_attr( $field->label ); ?>"
-								data-sync="block-fields-label_<?php echo esc_attr( $uid ); ?>" />
+								data-sync="block-fields-label_<?php echo esc_attr( $uid ); ?>"
+								<?php echo $is_field_disabled ? 'readonly="readonly"' : ''; ?>
+							/>
+							<?php if ( $is_field_disabled ) : ?>
+								<input
+									name="block-is-disabled-pro-field[<?php echo esc_attr( $uid ); ?>]"
+									type="hidden"
+									value="true"
+								/>
+							<?php endif; ?>
 						</td>
 					</tr>
 					<tr class="block-fields-edit-name">
@@ -585,7 +677,7 @@ class Block_Post extends Component_Abstract {
 							<label for="block-fields-edit-name-input_<?php echo esc_attr( $uid ); ?>">
 								<?php esc_html_e( 'Field Name', 'block-lab' ); ?>
 							</label>
-							<p class="description" id="block-fields-edit-name-description">
+							<p class="description">
 								<?php esc_html_e( 'Single word, no spaces.', 'block-lab' ); ?>
 							</p>
 						</th>
@@ -596,7 +688,8 @@ class Block_Post extends Component_Abstract {
 								id="block-fields-edit-name-input_<?php echo esc_attr( $uid ); ?>"
 								class="regular-text"
 								value="<?php echo esc_attr( $field->name ); ?>"
-								data-sync="block-fields-name-code_<?php echo esc_attr( $uid ); ?>" />
+								data-sync="block-fields-name-code_<?php echo esc_attr( $uid ); ?>"
+								<?php echo $is_field_disabled ? 'readonly="readonly"' : ''; ?> />
 						</td>
 					</tr>
 					<tr class="block-fields-edit-control">
@@ -610,39 +703,22 @@ class Block_Post extends Component_Abstract {
 							<select
 								name="block-fields-control[<?php echo esc_attr( $uid ); ?>]"
 								id="block-fields-edit-control-input_<?php echo esc_attr( $uid ); ?>"
-								data-sync="block-fields-control_<?php echo esc_attr( $uid ); ?>" >
-								<?php foreach ( $this->controls as $control ) : ?>
+								data-sync="block-fields-control_<?php echo esc_attr( $uid ); ?>"
+								<?php disabled( $is_field_disabled ); ?> >
+								<?php
+								$controls_for_select = $this->controls;
+								// If this field is disabled, it was probably added when there was a valid pro license, so still display it.
+								if ( $is_field_disabled && in_array( $field->control, $this->pro_controls, true ) ) {
+									$controls_for_select[ $field->control ] = $this->get_control( $field->control );
+								}
+								foreach ( $controls_for_select as $control_for_select ) :
+									?>
 									<option
-										value="<?php echo esc_attr( $control->name ); ?>"
-										<?php selected( $field->control, $control->name ); ?>>
-										<?php echo esc_html( $control->label ); ?>
+										value="<?php echo esc_attr( $control_for_select->name ); ?>"
+										<?php selected( $field->control, $control_for_select->name ); ?>>
+										<?php echo esc_html( $control_for_select->label ); ?>
 									</option>
 								<?php endforeach; ?>
-							</select>
-						</td>
-					</tr>
-					<tr class="block-fields-edit-location">
-						<td class="spacer"></td>
-						<th scope="row">
-							<label for="block-fields-edit-location-input_<?php echo esc_attr( $uid ); ?>">
-								<?php esc_html_e( 'Field Location', 'block-lab' ); ?>
-							</label>
-						</th>
-						<td>
-							<select
-								name="block-fields-location[<?php echo esc_attr( $uid ); ?>]"
-								id="block-fields-edit-location-input_<?php echo esc_attr( $uid ); ?>"
-								data-sync="block-fields-location_<?php echo esc_attr( $uid ); ?>" >
-									<option
-										value="editor"
-										<?php selected( $field->location, 'editor' ); ?>>
-										<?php esc_html_e( 'Editor', 'block-lab' ); ?>
-									</option>
-									<option
-										value="inspector"
-										<?php selected( $field->location, 'inspector' ); ?>>
-										<?php esc_html_e( 'Inspector', 'block-lab' ); ?>
-									</option>
 							</select>
 						</td>
 					</tr>
@@ -729,7 +805,8 @@ class Block_Post extends Component_Abstract {
 			return;
 		}
 
-		$template = block_lab_locate_template( 'blocks/block-' . $post->post_name . '.php', '', true );
+		$locations = block_lab()->get_template_locations( $post->post_name, 'block' );
+		$template  = block_lab()->locate_template( $locations, '', true );
 
 		if ( ! $template ) {
 			return;
@@ -868,7 +945,28 @@ class Block_Post extends Component_Abstract {
 
 		// Block category.
 		if ( isset( $_POST['block-properties-category'] ) ) {
-			$block->category = sanitize_key( $_POST['block-properties-category'] );
+			$category_slug = sanitize_key( $_POST['block-properties-category'] );
+			$categories    = get_block_categories( the_post() );
+
+			if ( '__custom' === $category_slug && isset( $_POST['block-properties-category-name'] ) ) {
+				$category = array(
+					'slug'  => sanitize_key( $_POST['block-properties-category-name'] ),
+					'title' => sanitize_text_field(
+						wp_unslash( $_POST['block-properties-category-name'] )
+					),
+					'icon'  => null,
+				);
+			} else {
+				$category_slugs = wp_list_pluck( $categories, 'slug' );
+				$category_key   = array_search( $category_slug, $category_slugs, true );
+				$category       = $categories[ $category_key ];
+			}
+
+			if ( ! $category ) {
+				$category = isset( $categories[0] ) ? $categories[0] : '';
+			}
+
+			$block->category = $category;
 		}
 
 		// Block keywords.
@@ -888,7 +986,7 @@ class Block_Post extends Component_Abstract {
 			$order = 0;
 
 			// We loop through this array and sanitize its content according to the content type.
-			$fields = wp_unslash( $_POST['block-fields-name'] ); // Sanitization okay.
+			$fields = wp_unslash( $_POST['block-fields-name'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			foreach ( $fields as $key => $name ) {
 				// Field name and order.
 				$field_config = array(
@@ -915,21 +1013,26 @@ class Block_Post extends Component_Abstract {
 					$field_config['type'] = $this->controls[ $field_config['control'] ]->type;
 				}
 
-				// Field location.
-				if ( isset( $_POST['block-fields-location'][ $key ] ) ) {
-					$field_config['location'] = sanitize_text_field(
-						wp_unslash( $_POST['block-fields-location'][ $key ] )
-					);
-				}
-
-				// Field settings.
-				if ( isset( $field_config['control'] ) && isset( $this->controls[ $field_config['control'] ] ) ) {
+				/*
+				 * Field settings.
+				 * If the field is a pro field that's no longer available, re-save the previous value of that field.
+				 * This allows saving other new fields, while retaining the previous pro field value in case the user reactivates the license.
+				 */
+				if ( ! empty( $_POST['block-is-disabled-pro-field'][ $key ] ) ) {
+					$previous_block = new Block( $post_id );
+					foreach ( $previous_block->fields as $previous_field ) {
+						if ( $name === $previous_field->name ) {
+							$field = $previous_field;
+							break;
+						}
+					}
+				} elseif ( isset( $field_config['control'] ) && isset( $this->controls[ $field_config['control'] ] ) ) {
 					$control = $this->controls[ $field_config['control'] ];
 					foreach ( $control->settings as $setting ) {
 						$value = false; // This is a good default, it allows us to pick up on unchecked checkboxes.
 
 						if ( isset( $_POST['block-fields-settings'][ $key ][ $setting->name ] ) ) {
-							$value = $_POST['block-fields-settings'][ $key ][ $setting->name ]; // Sanitization okay.
+							$value = $_POST['block-fields-settings'][ $key ][ $setting->name ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 							$value = wp_unslash( $value );
 						}
 
@@ -948,10 +1051,11 @@ class Block_Post extends Component_Abstract {
 						}
 
 						$field_config['settings'][ $setting->name ] = $value;
+						$field                                      = new Field( $field_config );
 					}
+				} else {
+					$field = new Field( $field_config );
 				}
-
-				$field = new Field( $field_config );
 
 				$block->fields[ $name ] = $field;
 				$order++;
@@ -993,6 +1097,7 @@ class Block_Post extends Component_Abstract {
 			'title'    => $columns['title'],
 			'icon'     => __( 'Icon', 'block-lab' ),
 			'template' => __( 'Template', 'block-lab' ),
+			'category' => __( 'Category', 'block-lab' ),
 			'keywords' => __( 'Keywords', 'block-lab' ),
 		);
 		return $new_columns;
@@ -1009,19 +1114,20 @@ class Block_Post extends Component_Abstract {
 	public function list_table_content( $column, $post_id ) {
 		if ( 'icon' === $column ) {
 			$block = new Block( $post_id );
-			$icons = block_lab_get_icons();
+			$icons = block_lab()->get_icons();
 
 			if ( isset( $icons[ $block->icon ] ) ) {
 				printf(
 					'<span class="icon %1$s">%2$s</span>',
 					esc_attr( $block->icon ),
-					wp_kses( $icons[ $block->icon ], block_lab_allowed_svg_tags() )
+					wp_kses( $icons[ $block->icon ], block_lab()->allowed_svg_tags() )
 				);
 			}
 		}
 		if ( 'template' === $column ) {
-			$block    = new Block( $post_id );
-			$template = block_lab_locate_template( 'blocks/block-' . $block->name . '.php', '', true );
+			$block     = new Block( $post_id );
+			$locations = block_lab()->get_template_locations( $block->name, 'block' );
+			$template  = block_lab()->locate_template( $locations, '', true );
 
 			if ( ! $template ) {
 				esc_html_e( 'No template found.', 'block-lab' );
@@ -1043,9 +1149,9 @@ class Block_Post extends Component_Abstract {
 			$block = new Block( $post_id );
 			echo esc_html( implode( ', ', $block->keywords ) );
 		}
-		if ( 'fields' === $column ) {
+		if ( 'category' === $column ) {
 			$block = new Block( $post_id );
-			echo esc_html( count( $block->fields ) );
+			echo esc_html( $block->category['title'] );
 		}
 	}
 
@@ -1189,7 +1295,7 @@ class Block_Post extends Component_Abstract {
 		// Output the JSON file.
 		header( 'Content-disposition: attachment; filename=' . $filename );
 		header( 'Content-type:application/json;charset=utf-8' );
-		echo wp_json_encode( $blocks ); // phpcs: XSS okay.
+		echo wp_json_encode( $blocks ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		die();
 	}
 }

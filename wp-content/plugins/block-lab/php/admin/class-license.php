@@ -3,7 +3,7 @@
  * Enable and validate Pro version licensing.
  *
  * @package   Block_Lab
- * @copyright Copyright(c) 2018, Block Lab
+ * @copyright Copyright(c) 2019, Block Lab
  * @license   http://opensource.org/licenses/GPL-2.0 GNU General Public License, version 2 (GPL-2.0)
  */
 
@@ -41,7 +41,7 @@ class License extends Component_Abstract {
 	 * Register any hooks that this component needs.
 	 */
 	public function register_hooks() {
-		add_filter( 'pre_update_option_block_lab_license_key', array( $this, 'save_license_key' ), 10, 1 );
+		add_filter( 'pre_update_option_block_lab_license_key', array( $this, 'save_license_key' ) );
 	}
 
 	/**
